@@ -8,10 +8,11 @@ import { X } from 'lucide-react';
 export default function App() {
 
 	const [ run, setRun ] = useState( false );
-	const quizLength = Questions.length;
-	const [ no, setNo ] = useState( 0 );
 
-	const getQuestionSeq = () => {
+	const quizLength = Questions.length;
+	const [ current, setCurrent ] = useState( 0 );
+
+	const getSequence = () => {
 
 		const arr = [];
 		while( arr.length < quizLength ) {
@@ -36,8 +37,9 @@ export default function App() {
 		return arr;
 
 	};
-	const [ questionSeq, setQuestionSeq ] = useState( getQuestionSeq() );
-	const currentQuestion = Questions[ questionSeq[ no ][ 0 ] ];
+	const [ sequence, setSequence ] = useState( getSequence() );
+
+	const currentQuestion = Questions[ sequence[ current ][ 0 ] ];
 	const [ currentAnswer, setCurrentAnswer ] = useState( '' );
 	const [ answers, setAnswers ] = useState( [] );
 	const [ result, setResult ] = useState( [] );
@@ -56,7 +58,7 @@ export default function App() {
 
 			</section>
 
-			<section className={ `mx-auto mt-5 md:p-5 md:w-250 min-h-100 bg-blue-100 border-2 border-blue-300 rounded-2xl flex ${ !run ? 'items-center justify-center' : 'flex-col' }` }>
+			<section className={ `mx-auto mt-5 p-5 md:w-250 min-h-100 bg-blue-100 border-2 border-blue-300 rounded-2xl flex ${ !run ? 'items-center justify-center' : 'flex-col' }` }>
 
 				{ !run ?
 					<button
@@ -66,38 +68,37 @@ export default function App() {
 
 					<>
 
-						<QuestionBlock current={ no } sequence={ questionSeq } currentAnswer={ currentAnswer } setCurrentAnswer={ setCurrentAnswer } />
+						<QuestionBlock { ...{ current, sequence, currentAnswer, setCurrentAnswer } } />
 
-						<section className="mt-5 flex flex-row">
+						<section className="mt-5 flex flex-col md:flex-row gap-5">
 
 							<section className="grow content-center text-lg">
 								{ !!currentAnswer && <><span className="italic">Your Selected Answer</span>: { currentAnswer }</> }
 							</section>
 
-								<button type="button"
-									className="w-1/6 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg cursor-pointer"
-									onClick={ () => {
+							<button type="button"
+								className="w-fit md:w-1/6 self-center md:self-auto bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg cursor-pointer"
+								onClick={ () => {
 
-										const { id } = currentQuestion;
-										if ( answers.find( elt => elt.id === id ) )
-											return;
+									const { id } = currentQuestion;
+									if ( answers.find( elt => elt.id === id ) )
+										return;
 
-										const answer = [ ...answers, { id: id, answer: currentAnswer } ];
-										setAnswers( answer );
+									const answer = [ ...answers, { id: id, answer: currentAnswer } ]
+									setAnswers( answer );
 
-										setCurrentAnswer( '' );
-										setNo( n => n < 9 ? n + 1 : n );
+									setCurrentAnswer( '' );
+									setCurrent( n => n < 9 ? n + 1 : n );
 
-										if ( no < ( quizLength - 1 ) )
-											return;
+									if ( current < ( quizLength - 1 ) )
+										return;
 
-										const rlt = answer.map( elt => Questions.find( elet => elt.id === elet.id )?.answer === elt.answer );
-										setResult( rlt );
+									setResult( answer.map( elt => Questions.find( elet => elt.id === elet.id )?.answer === elt.answer ) );
 
-										dialogRef.current?.showModal();
+									dialogRef.current?.showModal();
 
-									} }
-								>{ no < ( quizLength - 1 ) ? 'Next' : 'Submit' }</button>
+								} }
+							>{ current < ( quizLength - 1 ) ? 'Next' : 'Submit' }</button>
 
 						</section>
 
@@ -107,7 +108,7 @@ export default function App() {
 
 			</section>
 
-			{ result && <dialog id="show-result-dialog" ref={ dialogRef } className="m-auto p-5 border border-gray-300 rounded-3xl w-2/3">
+			{ result && <dialog id="show-result-dialog" ref={ dialogRef } className="m-auto p-5 border border-gray-300 rounded-3xl md:w-2/3">
 
                 <div className="flex flex-row justify-between" >
 
@@ -118,8 +119,8 @@ export default function App() {
 
 							dialogRef.current?.close();
 							setRun( false );
-							setNo( 0 );
-							setQuestionSeq( getQuestionSeq() );
+							setCurrent( 0 );
+							setSequence( getSequence() );
 							setCurrentAnswer( '' );
 							setAnswers( [] );
 							setResult( [] );
@@ -138,9 +139,9 @@ export default function App() {
 
 					{ result.map( ( elt, idx ) => {
 
-						const question = Questions[ questionSeq[ idx ][ 0 ] ];
+						const question = Questions[ sequence[ idx ][ 0 ] ];
 
-						return <section key={ idx }>
+						return <section key={ `result-${ idx - 1 }` }>
 
 							<section className="text-lg md:text-2xl font-semibold">Question { idx + 1 }:</section>
 							<section className="grow text-lg md:text-xl">{ question.question }</section>
@@ -151,7 +152,7 @@ export default function App() {
 									<span className="font-semibold">Your Answer:</span> { answers.find( elt => elt.id === question.id ).answer }
 								</label>
 
-								{ !elt && <label className={ `bg-green-200 text-lg py-2 px-4 rounded-lg` }>
+								{ !elt && <label className="bg-green-200 text-lg py-2 px-4 rounded-lg">
 									<span className="font-semibold">Correct Answer:</span> { question.answer }
 								</label> }
 

@@ -1,4 +1,4 @@
-import { Fragment, useState } from "react";
+import { Fragment } from "react";
 import Questions from "../js/Questions";
 
 export default function QuestionBlock( { current, sequence, currentAnswer, setCurrentAnswer } ) {
@@ -15,7 +15,7 @@ export default function QuestionBlock( { current, sequence, currentAnswer, setCu
 
                 const option = question.options[ elt ];
 
-                return <Fragment key={ idx }>
+                return <Fragment key={ `option-${ idx }` }>
 
                     <input
                         type="radio"
@@ -26,7 +26,10 @@ export default function QuestionBlock( { current, sequence, currentAnswer, setCu
                         { ...{ checked: false } }
                     />
 
-                    <label htmlFor={ `option${ idx + 1 }` } className={ `${ currentAnswer === option ? 'bg-blue-400' : 'bg-blue-200 hover:bg-blue-300' } text-lg md:text-xl font-normal py-2 px-4 rounded-lg cursor-pointer` }>{ option }</label>
+                    <label
+                        htmlFor={ `option${ idx + 1 }` }
+                        className={ `${ currentAnswer === option ? 'bg-blue-400' : 'bg-blue-200 hover:bg-blue-300' } text-lg md:text-xl font-normal py-2 px-4 rounded-lg cursor-pointer flex flex-row gap-2 items-center` }
+                    > { option } </label>
 
                 </Fragment>;
 
