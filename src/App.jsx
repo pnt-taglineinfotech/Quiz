@@ -11,7 +11,7 @@ export default function App() {
 
 	const quizLength = Questions.length;
 	const [ current, setCurrent ] = useState( 0 );
-
+// console.log( current );
 	const getSequence = () => {
 
 		const arr = [];
@@ -58,7 +58,7 @@ export default function App() {
 
 			</section>
 
-			<section className={ `mx-auto mt-5 p-5 md:w-250 min-h-100 bg-blue-100 border-2 border-blue-300 rounded-2xl flex ${ !run ? 'items-center justify-center' : 'flex-col' }` }>
+			<section className={ `mx-auto mt-5 p-5 md:w-250 min-h-100 bg-blue-100 border-2 border-blue-300 rounded-2xl flex ${ !run ? 'items-center justify-center' : 'flex-col' } select-none` }>
 
 				{ !run ?
 					<button
@@ -77,7 +77,7 @@ export default function App() {
 							</section>
 
 							<button type="button"
-								className="w-fit md:w-1/6 self-center md:self-auto bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg cursor-pointer"
+								className="w-fit md:w-1/6 self-center md:self-auto bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg cursor-pointer disabled:bg-green-400 disabled:hover:bg-green-400 disabled:cursor-not-allowed"
 								onClick={ () => {
 
 									const { id } = currentQuestion;
@@ -88,16 +88,17 @@ export default function App() {
 									setAnswers( answer );
 
 									setCurrentAnswer( '' );
-									setCurrent( n => n < 9 ? n + 1 : n );
+									setCurrent( n => n < ( quizLength - 1 ) ? n + 1 : n );
 
-									if ( current < ( quizLength - 1 ) )
+									if ( answer.length < quizLength )
 										return;
 
 									setResult( answer.map( elt => Questions.find( elet => elt.id === elet.id )?.answer === elt.answer ) );
 
-									dialogRef.current?.showModal();
+									setTimeout( () => dialogRef.current?.showModal(), 10 );
 
 								} }
+								{ ...!currentAnswer && { disabled: true } }
 							>{ current < ( quizLength - 1 ) ? 'Next' : 'Submit' }</button>
 
 						</section>
@@ -108,7 +109,7 @@ export default function App() {
 
 			</section>
 
-			{ result && <dialog id="show-result-dialog" ref={ dialogRef } className="m-auto p-5 border border-gray-300 rounded-3xl md:w-2/3">
+			{ result.length === quizLength && <dialog id="show-result-dialog" ref={ dialogRef } className="m-auto p-5 border border-gray-300 rounded-3xl md:w-2/3">
 
                 <div className="flex flex-row justify-between" >
 
@@ -132,10 +133,9 @@ export default function App() {
 
 				<div className="mt-5 max-h-100 flex flex-col gap-5 overflow-y-scroll">
 
-					{ result.every( f => f ) ?
-						<section className="font-semibold text-lg">Good Job! 10 Correct Answers of 10 Questions</section> :
-						<section className="font-semibold text-lg">{ result.filter( f => f ).length } Correct Answers of 10 Questions. Better Luck Next Time.</section>
-					}
+					<section className="font-semibold text-lg">
+						{ result.filter( f => f ).length } Correct Answers of 10 Questions. { result.every( f => f ) ? "Good Job!" : "Better Luck Next Time." }
+					</section>
 
 					{ result.map( ( elt, idx ) => {
 
