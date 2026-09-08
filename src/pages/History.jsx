@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 export default function History() {
 
     const goto = useNavigate();
-    const [ cookies, setCookie, removeCookie ] = useCookies( [ import.meta.env.VITE_COOKIE_NAME ] );
+    const cookies = useCookies( [ import.meta.env.VITE_COOKIE_NAME ] )[ 0 ];
     const matchs = cookies[ import.meta.env.VITE_COOKIE_NAME ]?.[ 0 ] || [];
 
     return <main className="min-h-[87vh] p-5 md:px-10">
@@ -33,7 +33,7 @@ export default function History() {
 
                 </section>
 
-                <section className="md:w-3/5 mx-auto mt-1 bg-gray-100 border-2 border-gray-300 rounded-3xl flex flex-col">
+                <section className="md:w-3/5 max-h-[60vh] overflow-y-scroll scrollbar-none mx-auto mt-1 bg-gray-100 border-2 border-gray-300 rounded-3xl flex flex-col">
 
                     { matchs
                     .sort( ( a, b ) => Temporal.Instant.from( b.timestamp ).epochMilliseconds - Temporal.Instant.from( a.timestamp ).epochMilliseconds )

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import QuestionBlock from '../assets/components/QuestionBlock';
 import Questions from '../assets/js/Questions';
 import { X } from 'lucide-react';
@@ -37,16 +37,75 @@ export default function Index() {
 		return arr;
 
 	};
-	const [ sequence, setSequence ] = useState( getSequence() );
 
-	const currentQuestion = Questions[ sequence[ current ][ 0 ] ];
-	const [ currentAnswer, setCurrentAnswer ] = useState( '' );
+	const [ sequence, setSequence ] = useState( [] );
 	const [ answers, setAnswers ] = useState( [] );
+
+	useEffect( () => {
+
+		if ( localStorage.getItem( 'Quiz' ) )
+			setRun( true );
+
+	} , [] );
+
+	useEffect( () => {
+
+		if ( run ) {
+
+			const local = JSON.parse( localStorage.getItem( 'Quiz' ) || '{}' );
+
+			if ( local.sequence )
+				setSequence( local.sequence );
+			else {
+
+				local.sequence = getSequence();
+				setSequence( local.sequence );
+				localStorage.setItem( 'Quiz', JSON.stringify( local ) );
+
+			}
+
+			if ( local.current )
+				setCurrent( local.current );
+			else {
+
+				local.current = 0;
+				setCurrent( local.current );
+				localStorage.setItem( 'Quiz', JSON.stringify( local ) );
+
+			}
+
+			if ( local.answers )
+				setAnswers( local.answers );
+			else {
+
+				local.answers = [];
+				setAnswers( local.answers );
+				localStorage.setItem( 'Quiz', JSON.stringify( local ) );
+
+			}
+
+		} else {
+
+			setSequence( [] );
+			setCurrent( 0 );
+			setAnswers( [] );
+			setSequence( [] );
+			setCurrentAnswer( '' );
+			setResult( [] );
+
+		}
+		
+	}, [ run ] );
+
+	const currentQuestion = Questions[ sequence?.[ current ]?.[ 0 ] ];
+	const [ currentAnswer, setCurrentAnswer ] = useState( '' );
 	const [ result, setResult ] = useState( [] );
 	const dialogRef = useRef( null );
 
 	const [ cookies, setCookie, removeCookie ] = useCookies( [ import.meta.env.VITE_COOKIE_NAME ] );
 	const goto = useNavigate();
+	const [ confirm, setConfirm ] = useState( false );
+	const confirmRef = useRef( null );
 
 	return <main className="min-h-[87vh] px-10">
 	
@@ -57,13 +116,22 @@ export default function Index() {
 
 		</section>
 
-		<section className="flex items-center">
+		<section className="flex gap-2 items-center">
 
 			<p className="grow text-lg">
 				<span className="font-semibold">Last Score:</span> { String( cookies?.[ import.meta.env.VITE_COOKIE_NAME ]?.[ 0 ]?.at( -1 )?.score || '--' ).padStart( 2, '0' ) }
 			</p>
+			{ run && <button
+				className="bg-red-500 hover:bg-red-700 text-white py-2 px-4 rounded-lg cursor-pointer"
+				onClick={ () => {
+
+					setConfirm( true );
+					setTimeout( () => confirmRef.current?.showModal(), 10 );
+
+				} }
+			>End Quiz</button> }
 			<button
-				className="bg-slate-500 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg cursor-pointer"
+				className="bg-slate-500 hover:bg-slate-700 text-white py-2 px-4 rounded-lg cursor-pointer"
 				onClick={ () => goto( '/history' ) }
 			>History</button>
 
@@ -98,7 +166,14 @@ export default function Index() {
 								setAnswers( answer );
 
 								setCurrentAnswer( '' );
-								setCurrent( n => n < ( quizLength - 1 ) ? n + 1 : n );
+								const cur = current < ( quizLength - 1 ) ? current + 1 : current;
+								setCurrent( cur );
+
+								localStorage.setItem( 'Quiz', JSON.stringify( {
+									...JSON.parse( localStorage.getItem( 'Quiz' ) ),
+									answers: answer,
+									current: cur
+								} ) )
 
 								if ( answer.length < quizLength )
 									return;
@@ -136,7 +211,7 @@ export default function Index() {
 
 		</section>
 
-		{ result.length === quizLength && <dialog id="show-result-dialog" ref={ dialogRef } className="m-auto p-5 border border-gray-300 rounded-3xl md:w-2/3">
+		{ ( run && result.length === quizLength ) && <dialog id="show-result-dialog" ref={ dialogRef } className="m-auto p-5 border border-gray-300 rounded-3xl md:w-2/3">
 
 			<section className="flex justify-between" >
 
@@ -147,11 +222,7 @@ export default function Index() {
 
 						dialogRef.current?.close();
 						setRun( false );
-						setCurrent( 0 );
-						setSequence( getSequence() );
-						setCurrentAnswer( '' );
-						setAnswers( [] );
-						setResult( [] );
+						localStorage.removeItem( 'Quiz' );
 
 					} }
 				><X /></button>
@@ -191,6 +262,35 @@ export default function Index() {
 
 			</section>
 
+		</dialog> }
+
+		{ confirm && <dialog className="m-auto p-5 border border-gray-300 rounded-3xl md:w-2/5 bg-orange-50" ref={ confirmRef } >
+		
+			<section className="text-3xl font-semibold text-center text-orange-600">Warning!!!</section>
+            <section className="p-5">
+				Do you want to end this quiz?<br />
+				Your scores will <strong>not</strong> be saved.
+			</section>
+            <section className="w-full flex justify-around">
+
+                <button
+                    className="text-lg bg-gray-400 hover:bg-gray-500 text-white rounded-2xl px-4 py-2 cursor-pointer"
+                    onClick={ () => setConfirm( false ) }
+                >Cancel</button>
+
+                <button
+                    className="text-lg bg-orange-400 hover:bg-orange-500 text-white rounded-2xl px-4 py-2 cursor-pointer"
+                    onClick={ () => {
+
+						setRun( false );
+						localStorage.removeItem( 'Quiz' );
+                        setConfirm( false );
+
+                    } }
+                >Yes</button>
+
+            </section>
+		
 		</dialog> }
 
 	</main>;

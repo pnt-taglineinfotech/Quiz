@@ -3,15 +3,15 @@ import Questions from "../js/Questions";
 
 export default function QuestionBlock( { current, sequence, currentAnswer, setCurrentAnswer } ) {
 
-    const question = Questions[ sequence[ current ][ 0 ] ];
+    const question = Questions[ sequence?.[ current ]?.[ 0 ] ];
 
     return <>
 
         <section className="text-lg md:text-2xl font-semibold">Question { current + 1 }:</section>
-        <section className="grow text-lg md:text-xl font-normal">{ question.question }</section>
+        <section className="grow text-lg md:text-xl font-normal">{ question?.question }</section>
         <section className="mt-5 flex flex-col gap-3">
 
-            { sequence[ current ][ 1 ].map( ( elt, idx ) => {
+            { sequence?.[ current ]?.[ 1 ].map( ( elt, idx ) => {
 
                 const option = question.options[ elt ];
 
